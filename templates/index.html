@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Restaurant Data Analysis Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <h1>🍽️ Restaurant Data Analysis Dashboard</h1>
+
+    <div class="search-container">
+        <form action="/" method="GET">
+            <input type="text" name="search" placeholder="Search by name, city, or cuisine..." value="{{ query }}">
+            <button type="submit">Search</button>
+            {% if query %}
+            <a href="/" class="clear-btn">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if search_results is not none %}
+    <div class="results-container">
+        <h2>🔍 Search Results (Top 15)</h2>
+        {% if search_results %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>City</th>
+                    <th>Cuisines</th>
+                    <th>Rating</th>
+                    <th>Price Range</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for restaurant in search_results %}
+                <tr>
+                    <td>{{ restaurant['Restaurant Name'] }}</td>
+                    <td>{{ restaurant['City'] }}</td>
+                    <td>{{ restaurant['Cuisines'] }}</td>
+                    <td>
+                        {% set r_color_class = restaurant['Rating color'].lower().replace(' ', '') %}
+                        <span
+                            class="rating {{ r_color_class if r_color_class in ['green', 'darkgreen', 'yellow', 'orange', 'white', 'red'] else 'default' }}">
+                            {{ restaurant['Aggregate rating'] }}
+                        </span>
+                    </td>
+                    <td>{{ restaurant['Price range'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No restaurants found for "{{ query }}".</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <hr>
+
+    <h2>🔥 Top Cuisines</h2>
+    <ul>
+        {% for cuisine, count in top_cuisines.items() %}
+        <li>{{ cuisine }} : {{ count }}</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h2>🏙️ City Analysis</h2>
+    <p><strong>City with most restaurants:</strong> {{ top_city }}</p>
+    <p><strong>City with highest average rating:</strong> {{ best_city }}</p>
+
+    <hr>
+
+    <h2>💰 Price Range Distribution</h2>
+    <ul>
+        {% for price, count in price_dist.items() %}
+        <li>Price Range {{ price }} : {{ count }}</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h2>🚚 Online Delivery</h2>
+    <ul>
+        {% for status, count in delivery_counts.items() %}
+        <li>{{ status }} : {{ count }}</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <p class="footer">Developed for Cognifyz Data Science Internship</p>
+
+</body>
+
+</html>
