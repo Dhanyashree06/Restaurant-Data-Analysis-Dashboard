@@ -1,14 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Restaurant Data Analysis Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Insights Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-    <h1>🍽️ Restaurant Data Analysis Dashboard</h1>
+    <header>
+        <h1>🍽️ Restaurant Data Analysis</h1>
+        <p class="subtitle">Comprehensive insights from global restaurant datasets</p>
+    </header>
 
     <div class="search-container">
         <form action="/" method="GET">
@@ -21,79 +27,169 @@
     </div>
 
     {% if search_results is not none %}
-    <div class="results-container">
+    <section class="results-container">
         <h2>🔍 Search Results (Top 15)</h2>
         {% if search_results %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>City</th>
-                    <th>Cuisines</th>
-                    <th>Rating</th>
-                    <th>Price Range</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for restaurant in search_results %}
-                <tr>
-                    <td>{{ restaurant['Restaurant Name'] }}</td>
-                    <td>{{ restaurant['City'] }}</td>
-                    <td>{{ restaurant['Cuisines'] }}</td>
-                    <td>
-                        {% set r_color_class = restaurant['Rating color'].lower().replace(' ', '') %}
-                        <span
-                            class="rating {{ r_color_class if r_color_class in ['green', 'darkgreen', 'yellow', 'orange', 'white', 'red'] else 'default' }}">
-                            {{ restaurant['Aggregate rating'] }}
-                        </span>
-                    </td>
-                    <td>{{ restaurant['Price range'] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>City</th>
+                        <th>Cuisines</th>
+                        <th>Rating</th>
+                        <th>Price Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for restaurant in search_results %}
+                    <tr>
+                        <td><strong>{{ restaurant['Restaurant Name'] }}</strong></td>
+                        <td>{{ restaurant['City'] }}</td>
+                        <td>{{ restaurant['Cuisines'] }}</td>
+                        <td>
+                            {% set r_color_class = restaurant['Rating color'].lower().replace(' ', '') %}
+                            <span
+                                class="rating-badge {{ r_color_class if r_color_class in ['green', 'darkgreen', 'yellow', 'orange', 'white', 'red'] else 'default' }}">
+                                {{ restaurant['Aggregate rating'] }} / 5.0
+                            </span>
+                        </td>
+                        <td>
+                            <span class="price-range">
+                                {{ "💰" * restaurant['Price range'] }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
-        <p>No restaurants found for "{{ query }}".</p>
+        <p class="no-results">No restaurants found for "{{ query }}".</p>
         {% endif %}
-    </div>
+    </section>
     {% endif %}
 
-    <hr>
+    <main class="dashboard-grid">
 
-    <h2>🔥 Top Cuisines</h2>
-    <ul>
-        {% for cuisine, count in top_cuisines.items() %}
-        <li>{{ cuisine }} : {{ count }}</li>
-        {% endfor %}
-    </ul>
+        <!-- Key Metrics Cards -->
+        <div class="card metric-card">
+            <h3>🏙️ City Analysis</h3>
+            <div class="metric-item">
+                <span class="label">Most Popular City</span>
+                <span class="value">{{ top_city }}</span>
+            </div>
+            <div class="metric-item">
+                <span class="label">Highest Rated City</span>
+                <span class="value">{{ best_city }}</span>
+            </div>
+        </div>
 
-    <hr>
+        <div class="card metric-card">
+            <h3>⭐ Review Insights</h3>
+            <div class="metric-item">
+                <span class="label">Avg Rating Word Count</span>
+                <span class="value">{{ avg_review_length }}</span>
+            </div>
+            <div class="metric-item">
+                <span class="label">Length vs Rating Corr</span>
+                <span class="value">{{ review_rating_corr }}</span>
+            </div>
+        </div>
 
-    <h2>🏙️ City Analysis</h2>
-    <p><strong>City with most restaurants:</strong> {{ top_city }}</p>
-    <p><strong>City with highest average rating:</strong> {{ best_city }}</p>
+        <div class="card metric-card">
+            <h3>🗳️ Voting Trends</h3>
+            <div class="metric-item">
+                <span class="label">Votes vs Rating Corr</span>
+                <span class="value">{{ votes_rating_corr }}</span>
+            </div>
+            <div class="metric-item">
+                <span class="label">Highest Votes</span>
+                <span class="value">{{ highest_votes_rest['Votes'] }} ({{ highest_votes_rest['Restaurant Name']
+                    }})</span>
+            </div>
+        </div>
 
-    <hr>
+        <!-- Charts/Lists -->
+        <div class="card list-card">
+            <h3>🔥 Top Cuisines</h3>
+            <ul class="stats-list">
+                {% for cuisine, count in top_cuisines.items() %}
+                <li>
+                    <span class="stat-name">{{ cuisine }}</span>
+                    <span class="stat-value">{{ count }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-    <h2>💰 Price Range Distribution</h2>
-    <ul>
-        {% for price, count in price_dist.items() %}
-        <li>Price Range {{ price }} : {{ count }}</li>
-        {% endfor %}
-    </ul>
+        <div class="card list-card">
+            <h3>💰 Price Distribution</h3>
+            <ul class="stats-list">
+                {% for price, count in price_dist.items() %}
+                <li>
+                    <span class="stat-name">Price Range {{ price }}</span>
+                    <span class="stat-value">{{ count }} restaurants</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-    <hr>
+        <div class="card sentiment-card">
+            <h3>🎭 Sentiment Keywords</h3>
+            <div class="sentiment-split">
+                <div class="pos">
+                    <h4>Positive</h4>
+                    <div class="tag-cloud">
+                        {% for word, count in positive_keywords.items() %}
+                        <span class="tag pos-tag" style="opacity: {{ 0.4 + (count / 4000) }}">
+                            {{ word }} ({{ count }})
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="neg">
+                    <h4>Negative/Average</h4>
+                    <div class="tag-cloud">
+                        {% for word, count in negative_keywords.items() %}
+                        <span class="tag neg-tag" style="opacity: {{ 0.4 + (count / 4000) }}">
+                            {{ word }} ({{ count }})
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <h2>🚚 Online Delivery</h2>
-    <ul>
-        {% for status, count in delivery_counts.items() %}
-        <li>{{ status }} : {{ count }}</li>
-        {% endfor %}
-    </ul>
+        <div class="card table-card full-width">
+            <h3>🚚 Service Availability by Price Range (%)</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Price Range</th>
+                            <th>Online Delivery</th>
+                            <th>Table Booking</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for price, services in price_service.items() %}
+                        <tr>
+                            <td><strong>Range {{ price }}</strong></td>
+                            <td>{{ services['Has Online delivery'] | round(1) }}%</td>
+                            <td>{{ services['Has Table booking'] | round(1) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <hr>
+    </main>
 
-    <p class="footer">Developed for Cognifyz Data Science Internship</p>
+    <footer>
+        <p>Built with ❤️ by Dhanyashree</p>
+    </footer>
 
 </body>
 
