@@ -31,3 +31,7 @@ A simple Flask-based dashboard for analyzing restaurant data.
 - `Dataset.csv`: Restaurant dataset.
 - `templates/`: HTML templates.
 - `static/`: CSS and other static assets.
+
+
+##Demo video
+https://drive.google.com/drive/u/0/folders/1CwKnD6QRTnZmqW1CRQ4VUvRyM-bLZEHu
