@@ -5,40 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Insights Dashboard</title>
+    <!-- Standard meta tags for SEO -->
+    <meta name="description"
+        content="Global Restaurant Data Analysis Dashboard providing insights on cuisines, cities, prices and sentiment.">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
     <header>
-        <h1>🍽️ Restaurant Data Analysis</h1>
-        <p class="subtitle">Comprehensive insights from global restaurant datasets</p>
+        <div class="header-content">
+            <h1>🍽️ Restaurant <span class="accent">Analytics</span></h1>
+            <p class="subtitle">Deep insights from global culinary data</p>
+        </div>
     </header>
 
     <div class="search-container">
-        <form action="/" method="GET">
-            <input type="text" name="search" placeholder="Search by name, city, or cuisine..." value="{{ query }}">
-            <button type="submit">Search</button>
+        <form action="/" method="GET" id="search-form">
+            <div class="input-group">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="search" id="search-input" placeholder="Search name, city, or cuisine..."
+                    value="{{ query }}">
+            </div>
+            <button type="submit" id="search-btn">Analyze</button>
             {% if query %}
-            <a href="/" class="clear-btn">Clear</a>
+            <a href="/" class="clear-btn" title="Clear search">✕</a>
             {% endif %}
         </form>
     </div>
 
     {% if search_results is not none %}
-    <section class="results-container">
-        <h2>🔍 Search Results (Top 15)</h2>
+    <section class="results-container glass-card">
+        <h2 id="results-title">🔍 Analysis for "{{ query }}" (Top 15)</h2>
         {% if search_results %}
         <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>City</th>
+                        <th>Restaurant</th>
+                        <th>Location</th>
                         <th>Cuisines</th>
                         <th>Rating</th>
-                        <th>Price Range</th>
+                        <th>Price</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,16 +55,17 @@
                     <tr>
                         <td><strong>{{ restaurant['Restaurant Name'] }}</strong></td>
                         <td>{{ restaurant['City'] }}</td>
-                        <td>{{ restaurant['Cuisines'] }}</td>
+                        <td><span class="cuisine-tag">{{ restaurant['Cuisines'] }}</span></td>
                         <td>
-                            {% set r_color_class = restaurant['Rating color'].lower().replace(' ', '') %}
+                            {% set r_color_class = restaurant['Rating color'].lower().replace(' ', '') if
+                            restaurant['Rating color'] else 'default' %}
                             <span
                                 class="rating-badge {{ r_color_class if r_color_class in ['green', 'darkgreen', 'yellow', 'orange', 'white', 'red'] else 'default' }}">
-                                {{ restaurant['Aggregate rating'] }} / 5.0
+                                {{ restaurant['Aggregate rating'] }}
                             </span>
                         </td>
                         <td>
-                            <span class="price-range">
+                            <span class="price-range" title="Price Range: {{ restaurant['Price range'] }}">
                                 {{ "💰" * restaurant['Price range'] }}
                             </span>
                         </td>
@@ -65,16 +75,17 @@
             </table>
         </div>
         {% else %}
-        <p class="no-results">No restaurants found for "{{ query }}".</p>
+        <p class="no-results">No restaurants found matching your criteria.</p>
         {% endif %}
     </section>
     {% endif %}
 
     <main class="dashboard-grid">
 
-        <!-- Key Metrics Cards -->
-        <div class="card metric-card">
-            <h3>🏙️ City Analysis</h3>
+        <div class="card metric-card glass-card" id="city-analysis">
+            <div class="card-header">
+                <h3>🏙️ City Dynamics</h3>
+            </div>
             <div class="metric-item">
                 <span class="label">Most Popular City</span>
                 <span class="value">{{ top_city }}</span>
@@ -85,8 +96,10 @@
             </div>
         </div>
 
-        <div class="card metric-card">
-            <h3>⭐ Review Insights</h3>
+        <div class="card metric-card glass-card" id="review-insights">
+            <div class="card-header">
+                <h3>⭐ Review Intelligence</h3>
+            </div>
             <div class="metric-item">
                 <span class="label">Avg Rating Word Count</span>
                 <span class="value">{{ avg_review_length }}</span>
@@ -97,87 +110,108 @@
             </div>
         </div>
 
-        <div class="card metric-card">
-            <h3>🗳️ Voting Trends</h3>
+        <div class="card metric-card glass-card" id="voting-trends">
+            <div class="card-header">
+                <h3>🗳️ Voting Trends</h3>
+            </div>
             <div class="metric-item">
                 <span class="label">Votes vs Rating Corr</span>
                 <span class="value">{{ votes_rating_corr }}</span>
             </div>
-            <div class="metric-item">
-                <span class="label">Highest Votes</span>
-                <span class="value">{{ highest_votes_rest['Votes'] }} ({{ highest_votes_rest['Restaurant Name']
-                    }})</span>
+            <div class="metric-item h-votes" title="{{ highest_votes_rest['Restaurant Name'] }}">
+                <span class="label">Most Voted: {{ highest_votes_rest['Restaurant Name'] }}</span>
+                <span class="value">{{ highest_votes_rest['Votes'] }}</span>
             </div>
         </div>
 
-        <!-- Charts/Lists -->
-        <div class="card list-card">
-            <h3>🔥 Top Cuisines</h3>
+        <div class="card list-card glass-card" id="top-cuisines">
+            <div class="card-header">
+                <h3>🔥 Trending Cuisines</h3>
+            </div>
             <ul class="stats-list">
+                {% if top_cuisines %}
+                {% set max_count = top_cuisines.values()|max %}
                 {% for cuisine, count in top_cuisines.items() %}
                 <li>
                     <span class="stat-name">{{ cuisine }}</span>
-                    <span class="stat-value">{{ count }}</span>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar" style="--bar-width: {{ (count / max_count * 100)|round() }}%;"></div>
+                        <span class="stat-value">{{ count }}</span>
+                    </div>
                 </li>
                 {% endfor %}
+                {% endif %}
             </ul>
         </div>
 
-        <div class="card list-card">
-            <h3>💰 Price Distribution</h3>
+        <div class="card list-card glass-card" id="price-distribution">
+            <div class="card-header">
+                <h3>💰 Price Segments</h3>
+            </div>
             <ul class="stats-list">
                 {% for price, count in price_dist.items() %}
                 <li>
-                    <span class="stat-name">Price Range {{ price }}</span>
-                    <span class="stat-value">{{ count }} restaurants</span>
+                    <span class="stat-name">Range {{ price }}</span>
+                    <span class="stat-value">{{ count }} <small>venues</small></span>
                 </li>
                 {% endfor %}
             </ul>
         </div>
 
-        <div class="card sentiment-card">
-            <h3>🎭 Sentiment Keywords</h3>
+        <div class="card sentiment-card glass-card full-width" id="sentiment-analysis">
+            <div class="card-header">
+                <h3>🎭 Sentiment Architecture</h3>
+            </div>
             <div class="sentiment-split">
-                <div class="pos">
-                    <h4>Positive</h4>
+                <div class="sentiment-group pos">
+                    <h4>Positive Signal</h4>
                     <div class="tag-cloud">
                         {% for word, count in positive_keywords.items() %}
-                        <span class="tag pos-tag" style="opacity: {{ 0.4 + (count / 4000) }}">
-                            {{ word }} ({{ count }})
-                        </span>
-                        {% endfor %}
+                        {% set op = (0.3 + (count / 3000)) | round(2) if count < 3000 else 1.0 %} <!-- CSS Variable used
+                            to avoid linter errors with Jinja tags in style properties -->
+                            <span class="tag pos-tag" style="--weight: {{ op }}; opacity: var(--weight);">
+                                {{ word }} <span class="count">{{ count }}</span>
+                            </span>
+                            {% endfor %}
                     </div>
                 </div>
-                <div class="neg">
-                    <h4>Negative/Average</h4>
+                <div class="sentiment-group neg">
+                    <h4>Negative / Neutral</h4>
                     <div class="tag-cloud">
                         {% for word, count in negative_keywords.items() %}
-                        <span class="tag neg-tag" style="opacity: {{ 0.4 + (count / 4000) }}">
-                            {{ word }} ({{ count }})
-                        </span>
-                        {% endfor %}
+                        {% set op = (0.3 + (count / 3000)) | round(2) if count < 3000 else 1.0 %} <span
+                            class="tag neg-tag" style="--weight: {{ op }}; opacity: var(--weight);">
+                            {{ word }} <span class="count">{{ count }}</span>
+                            </span>
+                            {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card table-card full-width">
-            <h3>🚚 Service Availability by Price Range (%)</h3>
+        <div class="card table-card glass-card full-width" id="service-metrics">
+            <div class="card-header">
+                <h3>🚚 Digital Adoption by Price Tier (%)</h3>
+            </div>
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <th>Price Range</th>
-                            <th>Online Delivery</th>
-                            <th>Table Booking</th>
+                            <th>Price Segment</th>
+                            <th>Online Delivery Access</th>
+                            <th>Reservation Capability</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for price, services in price_service.items() %}
                         <tr>
-                            <td><strong>Range {{ price }}</strong></td>
-                            <td>{{ services['Has Online delivery'] | round(1) }}%</td>
-                            <td>{{ services['Has Table booking'] | round(1) }}%</td>
+                            <td><strong>Segment {{ price }}</strong></td>
+                            <td class="{{ 'high-adoption' if services['Has Online delivery'] > 50 else '' }}">
+                                {{ services['Has Online delivery'] | round(1) }}%
+                            </td>
+                            <td class="{{ 'high-adoption' if services['Has Table booking'] > 50 else '' }}">
+                                {{ services['Has Table booking'] | round(1) }}%
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -188,7 +222,7 @@
     </main>
 
     <footer>
-        <p>Built with ❤️ by Dhanyashree</p>
+        <p>Expert Dashboard Engine &copy; 2026 | Developed by <span class="accent">Dhanyashree</span></p>
     </footer>
 
 </body>
