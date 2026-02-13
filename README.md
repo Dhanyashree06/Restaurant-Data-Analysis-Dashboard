@@ -32,6 +32,5 @@ A simple Flask-based dashboard for analyzing restaurant data.
 - `templates/`: HTML templates.
 - `static/`: CSS and other static assets.
 
-
-##Demo video
-https://drive.google.com/drive/u/0/folders/1CwKnD6QRTnZmqW1CRQ4VUvRyM-bLZEHu
+## Google drive
+https://drive.google.com/drive/u/0/folders/1wO3cirScRxNAniNRU4EQR0NDOpCnVK_M
